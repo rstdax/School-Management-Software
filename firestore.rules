@@ -1,0 +1,140 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserData(schoolId) {
+      return get(/databases/$(database)/documents/schools/$(schoolId)/users/$(request.auth.uid)).data;
+    }
+
+    function hasRole(schoolId, role) {
+      return isAuthenticated() && getUserData(schoolId).role == role && getUserData(schoolId).status == 'active';
+    }
+
+    function isAdmin(schoolId) {
+      return isAuthenticated() && getUserData(schoolId).role == 'admin' && getUserData(schoolId).status == 'active';
+    }
+
+    function isTeacher(schoolId) {
+      return isAuthenticated() && getUserData(schoolId).role == 'teacher' && getUserData(schoolId).status == 'active';
+    }
+
+    function isStudent(schoolId) {
+      return isAuthenticated() && getUserData(schoolId).role == 'student';
+    }
+
+    function isParent(schoolId) {
+      return isAuthenticated() && getUserData(schoolId).role == 'parent' && getUserData(schoolId).status == 'active';
+    }
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // School root metadata
+    match /schools/{schoolId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin(schoolId);
+
+      // Users collection
+      match /users/{userId} {
+        // Any authenticated user can read profiles in the school (e.g. teacher names, classmates)
+        allow read: if isAuthenticated();
+
+        // Self-registration for students and teachers with restricted initial state
+        allow create: if isAuthenticated() && request.auth.uid == userId
+          && (
+            (request.resource.data.role == 'student' && request.resource.data.status == 'pending_placement') ||
+            (request.resource.data.role == 'teacher' && request.resource.data.status == 'pending')
+          );
+
+        // Only admins can update roles, approval statuses, official placements, or parent linkings
+        allow update: if isAdmin(schoolId) || (
+          isAuthenticated() && request.auth.uid == userId &&
+          !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'status', 'schoolId', 'adminData', 'studentData'])
+        );
+
+        allow delete: if isAdmin(schoolId);
+      }
+
+      // Classes and Sections
+      match /classes/{classId} {
+        allow read: if isAuthenticated();
+        allow write: if isAdmin(schoolId);
+      }
+
+      match /sections/{sectionId} {
+        allow read: if isAuthenticated();
+        allow write: if isAdmin(schoolId);
+      }
+
+      // Subjects
+      match /subjects/{subjectId} {
+        allow read: if isAuthenticated();
+        allow write: if isAdmin(schoolId);
+      }
+
+      // Timetable Routines
+      match /routines/{routineId} {
+        allow read: if isAuthenticated();
+        allow write: if isAdmin(schoolId);
+      }
+
+      // Attendance Sessions
+      match /attendance_sessions/{sessionId} {
+        // Students and Parents can only read FINALIZED attendance
+        allow read: if isAdmin(schoolId) || isTeacher(schoolId) ||
+          (resource.data.status == 'finalized' && (isStudent(schoolId) || isParent(schoolId)));
+
+        // Teachers can create and update drafts for their assigned classes
+        allow create: if isTeacher(schoolId) || isAdmin(schoolId);
+
+        allow update: if
+          // Teacher updating their own session before/at finalization
+          (isTeacher(schoolId) && resource.data.teacherId == request.auth.uid &&
+            (resource.data.status == 'draft' || request.resource.data.status == 'finalized')) ||
+          // Admin authorized correction after finalization
+          isAdmin(schoolId);
+
+        allow delete: if isAdmin(schoolId);
+      }
+
+      // Attendance Audit Logs (Append-only by authorized admins)
+      match /audit_logs/{logId} {
+        allow read: if isAdmin(schoolId);
+        allow create: if isAdmin(schoolId) && request.resource.data.reason.size() >= 5;
+        allow update, delete: if false; // Immutable audit trail
+      }
+
+      // Leave Requests
+      match /leave_requests/{requestId} {
+        allow read: if isAdmin(schoolId) || isTeacher(schoolId) ||
+          (isAuthenticated() && (resource.data.submittedBy == request.auth.uid || resource.data.studentId == request.auth.uid));
+        allow create: if isAuthenticated() && (isStudent(schoolId) || isParent(schoolId));
+        allow update: if isAdmin(schoolId) || isTeacher(schoolId);
+        allow delete: if isAdmin(schoolId);
+      }
+
+      // Correction Requests
+      match /correction_requests/{requestId} {
+        allow read: if isAdmin(schoolId) || isTeacher(schoolId) ||
+          (isAuthenticated() && resource.data.submittedBy == request.auth.uid);
+        allow create: if isAuthenticated() && (isStudent(schoolId) || isParent(schoolId));
+        allow update: if isAdmin(schoolId) || isTeacher(schoolId);
+        allow delete: if isAdmin(schoolId);
+      }
+
+      // Announcements
+      match /announcements/{announcementId} {
+        allow read: if isAuthenticated();
+        allow write: if isAdmin(schoolId);
+      }
+    }
+  }
+}
+

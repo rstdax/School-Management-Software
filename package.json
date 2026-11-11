@@ -1,0 +1,35 @@
+{
+  "name": "sims-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm --workspace=apps/student-teacher run dev",
+    "dev:app": "npm --workspace=apps/student-teacher run dev",
+    "dev:admin": "npm --workspace=apps/admin run dev",
+    "build": "npm --workspace=apps/student-teacher run build && npm --workspace=apps/admin run build",
+    "build:app": "npm --workspace=apps/student-teacher run build",
+    "build:admin": "npm --workspace=apps/admin run build",
+    "preview:app": "npm --workspace=apps/student-teacher run preview",
+    "preview:admin": "npm --workspace=apps/admin run preview"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.9",
+    "@types/node": "^22.13.0",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "clsx": "^2.1.1",
+    "firebase": "^11.3.0",
+    "lucide-react": "^0.475.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwind-merge": "^3.0.1",
+    "tailwindcss": "^4.0.9",
+    "typescript": "^5.7.3",
+    "vite": "^6.1.0"
+  }
+}
