@@ -28,15 +28,13 @@ export const TeacherLoginScreen: React.FC<TeacherLoginProps> = ({
 
   useEffect(() => { const t = setTimeout(() => setVisible(true), 60); return () => clearTimeout(t); }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    setTimeout(() => {
-      const res = login(email, 'teacher');
-      if (res.success) { onSuccess(); }
-      else { setError(res.error || 'Invalid credentials.'); setLoading(false); }
-    }, 500);
+    const res = await login(email, password, 'teacher');
+    if (res.success) { onSuccess(); }
+    else { setError(res.error || 'Invalid credentials.'); setLoading(false); }
   };
 
   const inputCls = "w-full px-4 py-3 bg-white border border-stone-200 rounded-xl text-sm text-slate-800 placeholder:text-stone-400 outline-none focus:border-slate-500 focus:ring-2 focus:ring-slate-100 transition-all";

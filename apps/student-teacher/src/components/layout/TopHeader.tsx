@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotifications } from '../../context/NotificationContext';
+import { simsStore } from '@sims/shared';
 import { Bell, ArrowLeft, GraduationCap } from 'lucide-react';
 
 interface TopHeaderProps {
@@ -21,6 +22,23 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const { currentUser } = useAuth();
   const { unreadCount, openDrawer } = useNotifications();
 
+  // Load announcements — use SEED data as fallback for instant render
+  const [tickerText, setTickerText] = React.useState(() => {
+    try {
+      const ann = simsStore.getAnnouncements().slice(0, 6);
+      if (ann.length > 0) return ann.map(a => a.title).join('     ·     ');
+    } catch {}
+    // Fallback to hardcoded seed titles so ticker shows immediately
+    return 'Annual Science & Innovation Exhibition 2026     ·     Mid-Term Examination Schedule & Preparation Guidelines     ·     Mandatory 75% Attendance Regulation     ·     Parent-Teacher Consultations: Grade 10 & 12';
+  });
+
+  React.useEffect(() => {
+    try {
+      const ann = simsStore.getAnnouncements().slice(0, 6);
+      if (ann.length > 0) setTickerText(ann.map(a => a.title).join('     ·     '));
+    } catch {}
+  }, []);
+
   const getRoleBadge = () => {
     switch (currentUser?.role) {
       case 'student':
@@ -33,8 +51,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-4 py-3 transition-all">
-      <div className="flex items-center justify-between max-w-lg mx-auto">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 transition-all">
+
+      {/* ── Main header row ── */}
+      <div className="flex items-center justify-between max-w-lg mx-auto px-4 py-3">
         <div className="flex items-center gap-2.5">
           {showBack && onBack ? (
             <button
@@ -75,7 +95,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
         {currentUser && (
           <div className="flex items-center gap-2">
-            {/* Notification Bell */}
             <button
               onClick={openDrawer}
               className="relative p-2 text-slate-600 hover:text-blue-600 hover:bg-slate-50 rounded-full transition-colors"
@@ -89,7 +108,6 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               )}
             </button>
 
-            {/* Avatar Profile */}
             <button
               onClick={() => onNavigateScreen('profile')}
               className={`w-9 h-9 rounded-full ring-2 transition-all overflow-hidden flex items-center justify-center font-bold text-xs ${
@@ -100,11 +118,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               title={currentUser.name}
             >
               {currentUser.avatarUrl ? (
-                <img
-                  src={currentUser.avatarUrl}
-                  alt={currentUser.name}
-                  className="w-full h-full object-cover"
-                />
+                <img src={currentUser.avatarUrl} alt={currentUser.name} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
                   {currentUser.name.charAt(0)}
@@ -114,7 +128,34 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           </div>
         )}
       </div>
+
+      {/* ── Announcement ticker — directly below header ── */}
+      {tickerText && (
+        <div
+          className="overflow-hidden border-t border-slate-100 cursor-pointer select-none"
+          style={{ height: '24px', background: '#f1f5f9' }}
+          onClick={() => onNavigateScreen('announcements')}
+        >
+          <div className="flex items-center h-full overflow-hidden">
+            <span
+              className="whitespace-nowrap text-[11px] font-medium text-slate-500 inline-block"
+              style={{
+                animation: 'announceTicker 40s linear infinite',
+                willChange: 'transform',
+              }}
+            >
+              {tickerText}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{tickerText}
+            </span>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes announceTicker {
+          0%   { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+      `}</style>
     </header>
   );
 };
-

@@ -3,8 +3,6 @@ import { useAuth } from '../../context/AuthContext';
 import {
   Home,
   CalendarCheck,
-  Clock,
-  Megaphone,
   User,
   CheckCircle2,
   BarChart3,
@@ -25,24 +23,23 @@ export const BottomNavigation: React.FC<BottomNavProps> = ({
   if (!currentUser) return null;
 
   const role = currentUser.role;
-
   let navItems: { screen: string; label: string; icon: React.ReactNode }[] = [];
 
   if (role === 'student') {
     navItems = [
-      { screen: 'dashboard',     label: 'Home',       icon: <Home className="w-5 h-5" /> },
-      { screen: 'attendance',    label: 'Attendance', icon: <CalendarCheck className="w-5 h-5" /> },
-      { screen: 'grades',        label: 'Grades',     icon: <Award className="w-5 h-5" /> },
-      { screen: 'leave_requests',label: 'Leaves',     icon: <FileCheck2 className="w-5 h-5" /> },
-      { screen: 'profile',       label: 'Profile',    icon: <User className="w-5 h-5" /> },
+      { screen: 'dashboard',      label: 'Home',       icon: <Home className="w-5 h-5" /> },
+      { screen: 'attendance',     label: 'Attendance', icon: <CalendarCheck className="w-5 h-5" /> },
+      { screen: 'grades',         label: 'Grades',     icon: <Award className="w-5 h-5" /> },
+      { screen: 'leave_requests', label: 'Leaves',     icon: <FileCheck2 className="w-5 h-5" /> },
+      { screen: 'profile',        label: 'Profile',    icon: <User className="w-5 h-5" /> },
     ];
   } else if (role === 'teacher') {
     navItems = [
-      { screen: 'dashboard', label: 'Home', icon: <Home className="w-5 h-5" /> },
+      { screen: 'dashboard',          label: 'Home',       icon: <Home className="w-5 h-5" /> },
       { screen: 'teacher_attendance', label: 'Attendance', icon: <CheckCircle2 className="w-5 h-5" /> },
-      { screen: 'teacher_reports', label: 'Reports', icon: <BarChart3 className="w-5 h-5" /> },
-      { screen: 'leave_requests', label: 'Leaves', icon: <FileCheck2 className="w-5 h-5" /> },
-      { screen: 'profile', label: 'Profile', icon: <User className="w-5 h-5" /> },
+      { screen: 'teacher_reports',    label: 'Reports',    icon: <BarChart3 className="w-5 h-5" /> },
+      { screen: 'leave_requests',     label: 'Leaves',     icon: <FileCheck2 className="w-5 h-5" /> },
+      { screen: 'profile',            label: 'Profile',    icon: <User className="w-5 h-5" /> },
     ];
   }
 
@@ -56,16 +53,10 @@ export const BottomNavigation: React.FC<BottomNavProps> = ({
               key={item.screen}
               onClick={() => onNavigateScreen(item.screen)}
               className={`flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-xl transition-all duration-150 ${
-                isActive
-                  ? 'text-blue-600 font-semibold'
-                  : 'text-slate-500 hover:text-slate-800 font-medium'
+                isActive ? 'text-blue-600 font-semibold' : 'text-slate-500 hover:text-slate-800 font-medium'
               }`}
             >
-              <div
-                className={`p-1 rounded-xl transition-colors ${
-                  isActive ? 'bg-blue-50 text-blue-600' : 'text-slate-500'
-                }`}
-              >
+              <div className={`p-1 rounded-xl transition-colors ${isActive ? 'bg-blue-50 text-blue-600' : 'text-slate-500'}`}>
                 {item.icon}
               </div>
               <span className={`text-[11px] mt-0.5 tracking-tight ${isActive ? 'font-bold' : ''}`}>
@@ -78,4 +69,3 @@ export const BottomNavigation: React.FC<BottomNavProps> = ({
     </nav>
   );
 };
-

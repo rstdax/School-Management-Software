@@ -239,9 +239,9 @@ export const App: React.FC = () => {
       case 'profile':
         return (
           <ProfileScreen
-            onLogout={() => {
+            onLogout={async () => {
               sessionStorage.removeItem('sims_current_screen');
-              logout();
+              await logout();
               navigateTo('welcome');
             }}
             onNavigateScreen={navigateTo}

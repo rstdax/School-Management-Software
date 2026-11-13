@@ -6,9 +6,6 @@ import {
   Clock,
   FileText,
   AlertTriangle,
-  Megaphone,
-  ArrowRight,
-  MapPin,
   AlertCircle,
   X,
 } from 'lucide-react';
@@ -32,16 +29,13 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
   const [showFeesBanner, setShowFeesBanner] = useState(true);
 
   const stats       = simsStore.getStudentAttendanceStats(currentUser.uid);
-  const timetable   = simsStore.getTimetable('class-g10', 'sec-g10-a', 2);
-  const announcements = simsStore.getAnnouncements().slice(0, 3);
-  const subjects    = simsStore.getSubjects();
   const pendingFees = simsStore.getStudentPendingFees(currentUser.uid);
 
   // Current month stats
   const now = new Date();
   const currentMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const monthStats = simsStore.getStudentAttendanceStats(currentUser.uid, currentMonthStr);
-  const monthName = now.toLocaleString('default', { month: 'long' });
+  const monthName  = now.toLocaleString('default', { month: 'long' });
 
   const isPendingPlacement = currentUser.status === 'pending_placement';
 
@@ -101,8 +95,8 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
               </div>
             </div>
             <button onClick={() => onNavigateScreen('attendance')}
-              className="text-xs font-semibold text-blue-600 flex items-center gap-0.5">
-              View Details <ArrowRight className="w-3.5 h-3.5" />
+              className="text-xs font-semibold text-blue-600">
+              View Details →
             </button>
           </div>
 
@@ -125,7 +119,6 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
             </div>
           </div>
 
-          {/* Progress bar — overall % */}
           <div className="mt-4 pt-3 border-t border-slate-100">
             <div className="flex justify-between text-[10px] font-semibold text-slate-500 mb-1">
               <span>Minimum 75% Required</span>
@@ -142,7 +135,7 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
         </div>
       )}
 
-      {/* ── Fees Alert Banner — shown below attendance ── */}
+      {/* ── Fees Alert Banner ── */}
       {pendingFees.length > 0 && showFeesBanner && (
         <div className="p-3.5 bg-orange-50 border border-orange-200 rounded-2xl text-orange-900 flex items-start gap-2.5">
           <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
@@ -154,17 +147,13 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
             <p className="text-[10px] mt-0.5 text-orange-700 font-medium">
               {pendingFees.map(f => f.monthLabel).join(', ')}
             </p>
-            <button
-              onClick={() => onNavigateScreen('fees')}
-              className="mt-2 px-3 py-1 bg-orange-600 hover:bg-orange-700 text-white text-[11px] font-bold rounded-lg transition-colors"
-            >
+            <button onClick={() => onNavigateScreen('fees')}
+              className="mt-2 px-3 py-1 bg-orange-600 hover:bg-orange-700 text-white text-[11px] font-bold rounded-lg transition-colors">
               View Details
             </button>
           </div>
-          <button
-            onClick={() => setShowFeesBanner(false)}
-            className="p-1 rounded-lg text-orange-400 hover:text-orange-700 hover:bg-orange-100 transition-colors flex-shrink-0"
-          >
+          <button onClick={() => setShowFeesBanner(false)}
+            className="p-1 rounded-lg text-orange-400 hover:text-orange-700 hover:bg-orange-100 transition-colors flex-shrink-0">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -195,80 +184,6 @@ export const StudentDashboardScreen: React.FC<StudentDashboardProps> = ({
           <div className="p-2 bg-amber-50 text-amber-600 rounded-xl mb-1.5"><AlertTriangle className="w-4 h-4" /></div>
           <span className="text-[11px] font-bold text-slate-800">Correction</span>
         </button>
-      </div>
-
-      {/* ── Today's Lectures ── */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg"><Clock className="w-4 h-4" /></div>
-            <h3 className="font-heading font-bold text-slate-900 text-sm">Today's Lectures</h3>
-          </div>
-          <span className="text-xs text-slate-400">Tuesday · {timetable.length} sessions</span>
-        </div>
-
-        <div className="space-y-2.5">
-          {timetable.map((slot, idx) => {
-            const subj    = subjects.find(s => s.id === slot.subjectId);
-            const isDone  = idx === 0;
-            return (
-              <div key={slot.id}
-                className={`p-3 rounded-xl border flex items-center justify-between ${
-                  isDone ? 'bg-emerald-50/40 border-emerald-200/60' : 'bg-slate-50 border-slate-200/70'
-                }`}>
-                <div className="flex items-center gap-3">
-                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs ${
-                    isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'
-                  }`}>
-                    P{slot.periodNumber}
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-bold text-slate-900">{subj?.name ?? 'Academic Class'}</h4>
-                    <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-0.5">
-                      <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" />{slot.startTime} – {slot.endTime}</span>
-                      <span>·</span>
-                      <span className="flex items-center gap-0.5"><MapPin className="w-3 h-3" />{slot.roomNumber}</span>
-                    </div>
-                  </div>
-                </div>
-                <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full ${
-                  isDone ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-700'
-                }`}>
-                  {isDone ? 'Finalized' : 'Upcoming'}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ── Announcements ── */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg"><Megaphone className="w-4 h-4" /></div>
-            <h3 className="font-heading font-bold text-slate-900 text-sm">School Announcements</h3>
-          </div>
-          <button onClick={() => onNavigateScreen('announcements')}
-            className="text-xs font-semibold text-blue-600 flex items-center gap-0.5">
-            All Notices <ArrowRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-        <div className="space-y-2.5">
-          {announcements.map(ann => (
-            <div key={ann.id} onClick={() => onSelectAnnouncement(ann)}
-              className="p-3 bg-slate-50 hover:bg-blue-50/40 border border-slate-200/70 rounded-xl cursor-pointer transition-all">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-[10px] font-bold text-blue-700 bg-blue-100/70 px-2 py-0.5 rounded-full uppercase">
-                  {ann.category}
-                </span>
-                <span className="text-[10px] text-slate-400">{new Date(ann.publishedAt).toLocaleDateString()}</span>
-              </div>
-              <h4 className="text-xs font-bold text-slate-900 mt-1 truncate">{ann.title}</h4>
-              <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">{ann.content}</p>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );
